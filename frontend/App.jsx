@@ -7,7 +7,8 @@ import {
 import { AreaChart, Area, PieChart, Pie, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 // Configuration
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+// Use /api for same-domain deployment, or external URL for separate deployment
+const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 // Helper functions
 function generateChartData() {

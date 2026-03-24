@@ -1,9 +1,10 @@
 """
 GenAI Traffic Generator - Flask REST API
 Provides endpoints to control and monitor traffic generation
+Serves frontend as static files for single-website deployment
 """
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 import subprocess
 import json
@@ -11,7 +12,8 @@ import os
 import logging
 from pathlib import Path
 
-app = Flask(__name__)
+# Serve frontend from ../frontend/dist
+app = Flask(__name__, static_folder='../frontend/dist', static_url_path='')
 CORS(app, resources={
     r"/api/*": {
         "origins": ["http://localhost:5173", "http://localhost:3000", "http://127.0.0.1:5173", "*"],
@@ -204,6 +206,23 @@ def metrics():
         return jsonify(metrics), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+# Serve index.html for all non-API routes (SPA routing)
+@app.route('/', methods=['GET'])
+def serve_index():
+    return send_from_directory(app.static_folder, 'index.html')
+
+@app.route('/<path:path>', methods=['GET'])
+def serve_static(path):
+    # If it's not a file in static folder, serve index.html (SPA routing)
+    if path.startswith('api/'):
+        return jsonify({'error': 'Endpoint not found'}), 404
+    
+    file_path = os.path.join(app.static_folder, path)
+    if os.path.isfile(file_path):
+        return send_from_directory(app.static_folder, path)
+    else:
+        return send_from_directory(app.static_folder, 'index.html')
 
 if __name__ == '__main__':
     # For development: use debug mode
