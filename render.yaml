@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: genai-network-traffic-generator-backend
+    runtime: python
+    runtimeVersion: 3.11.7
+    buildCommand: cd backend && pip install -r requirements.txt
+    startCommand: cd backend && gunicorn --bind 0.0.0.0:10000 --workers 2 --timeout 120 api:app
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: PYTHONUNBUFFERED
+        value: "1"
+
+  - type: static
+    name: genai-network-traffic-generator-frontend
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: frontend/dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://genai-network-traffic-generator-backend.onrender.com
