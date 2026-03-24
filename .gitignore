@@ -1,44 +1,198 @@
-# Dependencies
+# ============================================
+# DEPENDENCIES & VIRTUAL ENVIRONMENTS
+# ============================================
 node_modules/
 .venv/
 venv/
 env/
+ENV/
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
 __pycache__/
-*.pyc
-
-# Build outputs
-frontend/dist/
-backend/__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
 *.egg-info/
+.installed.cfg
+*.egg
 
-# Environment variables
+# ============================================
+# ENVIRONMENT VARIABLES & SECRETS (CRITICAL)
+# ============================================
 .env
 .env.local
 .env.*.local
+.env.production
+.env.development
+.env.test
+*.pem
+*.key
+*.pub
+.aws/
+.gcp/
+credentials.json
+secrets.json
+api_keys.txt
+private_keys/
 
-# IDE
+# ============================================
+# BUILD OUTPUTS
+# ============================================
+frontend/dist/
+frontend/build/
+backend/__pycache__/
+backend/build/
+*.egg-info/
+
+# ============================================
+# IDE & EDITOR CONFIG
+# ============================================
 .vscode/
+.vscode/settings.json
+.vscode/launch.json
+.vscode/extensions.json
 .idea/
+*.sublime-project
+*.sublime-workspace
+.vim/
+.emacs.d/
 *.swp
 *.swo
 *~
-
-# OS
 .DS_Store
 Thumbs.db
+.project
+.pydevproject
+.settings/
+*.project
 
-# Logs
+# ============================================
+# LOGS & TEMPORARY FILES
+# ============================================
 traffic_log.txt
+traffic_log_*.txt
 *.log
+*.log.*
+npm-debug.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+debug.log
+logs/
+*.log
 
-# Testing
+# ============================================
+# TESTING & COVERAGE
+# ============================================
 .pytest_cache/
 .coverage
+.coverage.*
+htmlcov/
+.tox/
+.hypothesis/
+.nyc_output/
+coverage/
 
-# Misc
+# ============================================
+# OS & SYSTEM FILES
+# ============================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*.swp
+*.swo
+*~
+.AppleDouble
+.LSOverride
+
+# ============================================
+# CACHES & TEMPORARY
+# ============================================
 .cache/
+.pytest_cache/
+.eslintcache
+*.tmp
+*.temp
+tmp/
+temp/
+*.backup
+*.bak
+
+# ============================================
+# VSCODE & GIT
+# ============================================
+.git/
+.gitignore
+.vscode/
+.vscode-test/
+.history/
+
+# ============================================
+# MISC & UNTRACKED
+# ============================================
 dist/
 build/
+*.zip
+*.tar.gz
+*.tar
+.env.*.swp
+.DS_Store
+node_modules/.bin/
+frontend/node_modules/
+backend/.DS_Store
+*.DS_Store
+
+# ============================================
+# DATABASE & SENSITIVE DATA
+# ============================================
+*.db
+*.sqlite
+*.sqlite3
+*.dump
+data/
+database/
+
+# ============================================
+# DO NOT COMMIT THESE PATTERNS
+# ============================================
+# Private keys
+*.pem
+*.key
+*.pub
+
+# Credentials
+credentials.json
+.aws/
+.gcp/
+auth.json
+
+# API Keys
+api_key.txt
+API_KEY
+SECRET_KEY
+tokens/
+
+# Tokens
+.token
+*.token
+session_*
