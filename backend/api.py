@@ -7,16 +7,25 @@ Serves frontend as static files for single-website deployment
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 import subprocess
-import json
 import os
 import logging
 from pathlib import Path
+import sys
+
+BASE_DIR = Path(__file__).resolve().parent
+FRONTEND_DIST_DIR = BASE_DIR.parent / 'frontend' / 'dist'
+LOG_FILE = BASE_DIR / 'traffic_log.txt'
 
 # Serve frontend from ../frontend/dist
-app = Flask(__name__, static_folder='../frontend/dist', static_url_path='')
+app = Flask(__name__, static_folder=str(FRONTEND_DIST_DIR), static_url_path='')
 CORS(app, resources={
     r"/api/*": {
-        "origins": ["http://localhost:5173", "http://localhost:3000", "http://127.0.0.1:5173", "*"],
+        "origins": [
+            "http://localhost:5173",
+            "http://localhost:3000",
+            "http://127.0.0.1:5173",
+            "*",
+        ],
         "methods": ["GET", "POST", "OPTIONS"],
         "allow_headers": ["Content-Type"]
     }
@@ -28,7 +37,6 @@ logger = logging.getLogger(__name__)
 
 # Global traffic process
 traffic_process = None
-LOG_FILE = 'traffic_log.txt'
 
 # Error handlers
 @app.errorhandler(404)
@@ -55,7 +63,8 @@ def health():
     return jsonify({
         'status': 'ok',
         'version': '1.0.0',
-        'service': 'genai-traffic-api'
+        'service': 'genai-traffic-api',
+        'frontend_built': FRONTEND_DIST_DIR.exists(),
     }), 200
 
 @app.route('/api/defaults', methods=['GET'])
@@ -73,13 +82,13 @@ def defaults():
 def logs():
     """Get traffic logs"""
     try:
-        if os.path.exists(LOG_FILE):
-            with open(LOG_FILE, 'r') as f:
+        if LOG_FILE.exists():
+            with LOG_FILE.open('r') as f:
                 lines = f.readlines()
                 return jsonify({
                     'total_lines': len(lines),
                     'logs': lines[-100:],  # Last 100 lines
-                    'timestamp': os.path.getmtime(LOG_FILE)
+                    'timestamp': LOG_FILE.stat().st_mtime
                 }), 200
         return jsonify({'logs': [], 'total_lines': 0}), 200
     except Exception as e:
@@ -96,7 +105,7 @@ def start_traffic():
     
     try:
         config = request.json or {}
-        cmd = ['python3', 'main.py']
+        cmd = [sys.executable, 'main.py']
         
         # Build command from config
         if config.get('http_count', 0) > 0:
@@ -123,7 +132,12 @@ def start_traffic():
             cmd.extend(['--ftp-count', str(config['ftp_count'])])
         
         logger.info(f"Starting traffic generation with: {' '.join(cmd)}")
-        traffic_process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd='backend')
+        traffic_process = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            cwd=str(BASE_DIR),
+        )
         
         return jsonify({
             'status': 'started',
@@ -182,8 +196,8 @@ def metrics():
             'errors': 0,
         }
         
-        if os.path.exists(LOG_FILE):
-            with open(LOG_FILE, 'r') as f:
+        if LOG_FILE.exists():
+            with LOG_FILE.open('r') as f:
                 for line in f:
                     if '[HTTP]' in line:
                         metrics['http_packets'] += 1
@@ -210,6 +224,11 @@ def metrics():
 # Serve index.html for all non-API routes (SPA routing)
 @app.route('/', methods=['GET'])
 def serve_index():
+    if not FRONTEND_DIST_DIR.exists():
+        return jsonify({
+            'error': 'Frontend build not found',
+            'message': 'Run the frontend build before starting the server.'
+        }), 503
     return send_from_directory(app.static_folder, 'index.html')
 
 @app.route('/<path:path>', methods=['GET'])
@@ -218,8 +237,14 @@ def serve_static(path):
     if path.startswith('api/'):
         return jsonify({'error': 'Endpoint not found'}), 404
     
-    file_path = os.path.join(app.static_folder, path)
-    if os.path.isfile(file_path):
+    if not FRONTEND_DIST_DIR.exists():
+        return jsonify({
+            'error': 'Frontend build not found',
+            'message': 'Run the frontend build before starting the server.'
+        }), 503
+
+    file_path = FRONTEND_DIST_DIR / path
+    if file_path.is_file():
         return send_from_directory(app.static_folder, path)
     else:
         return send_from_directory(app.static_folder, 'index.html')
@@ -227,7 +252,7 @@ def serve_static(path):
 if __name__ == '__main__':
     # For development: use debug mode
     # For production: disable debug and set to 0.0.0.0
-    import sys
     debug_mode = '--debug' in sys.argv or '--dev' in sys.argv
     host = 'localhost' if debug_mode else '0.0.0.0'
-    app.run(debug=debug_mode, port=5000, host=host, threaded=True)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(debug=debug_mode, port=port, host=host, threaded=True)

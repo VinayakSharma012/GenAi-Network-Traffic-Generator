@@ -46,7 +46,7 @@ Set these values:
 | **Name** | `genai-network-traffic-generator` |
 | **Runtime** | Python 3 |
 | **Build Command** | `cd frontend && npm install && npm run build && cd ../backend && pip install -r requirements.txt` |
-| **Start Command** | `cd backend && gunicorn --bind 0.0.0.0:10000 --workers 2 --timeout 120 api:app` |
+| **Start Command** | `cd backend && gunicorn --bind 0.0.0.0:$PORT --workers 2 --timeout 120 api:app` |
 | **Plan** | Free (or Standard for production) |
 
 ### 5. Add Environment Variables
@@ -58,7 +58,21 @@ FLASK_ENV=production
 PYTHONUNBUFFERED=1
 ```
 
-### 6. Deploy
+### 6. Important Fix If Render Shows The Default Python Command
+
+If your deploy log shows:
+
+```bash
+gunicorn your_application.wsgi
+```
+
+update the Render service's Start Command manually to:
+
+```bash
+cd backend && gunicorn --bind 0.0.0.0:$PORT --workers 2 --timeout 120 api:app
+```
+
+### 7. Deploy
 
 Click **"Create Web Service"** and wait (10-15 minutes for first build).
 
