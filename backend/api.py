@@ -94,6 +94,17 @@ def logs():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/logs/clear', methods=['POST'])
+def clear_logs():
+    """Clear traffic logs"""
+    try:
+        if LOG_FILE.exists():
+            LOG_FILE.write_text('')
+        return jsonify({'status': 'cleared', 'message': 'Logs cleared successfully'}), 200
+    except Exception as e:
+        logger.error(f"Error clearing logs: {str(e)}")
+        return jsonify({'error': str(e), 'status': 'failed'}), 500
+
 @app.route('/api/traffic/start', methods=['POST'])
 def start_traffic():
     """Start traffic generation"""
