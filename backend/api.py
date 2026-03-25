@@ -17,7 +17,7 @@ FRONTEND_DIST_DIR = BASE_DIR.parent / 'frontend' / 'dist'
 LOG_FILE = BASE_DIR / 'traffic_log.txt'
 
 # Serve frontend from ../frontend/dist
-app = Flask(__name__, static_folder=str(FRONTEND_DIST_DIR), static_url_path='')
+app = Flask(__name__, static_folder=None)
 CORS(app, resources={
     r"/api/*": {
         "origins": [
@@ -232,6 +232,13 @@ def metrics():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/assets/<path:path>', methods=['GET'])
+def serve_assets(path):
+    asset_path = FRONTEND_DIST_DIR / 'assets' / path
+    if asset_path.is_file():
+        return send_from_directory(FRONTEND_DIST_DIR / 'assets', path)
+    return jsonify({'error': 'Asset not found', 'status': 404}), 404
+
 # Serve index.html for all non-API routes (SPA routing)
 @app.route('/', methods=['GET'])
 def serve_index():
@@ -240,7 +247,7 @@ def serve_index():
             'error': 'Frontend build not found',
             'message': 'Run the frontend build before starting the server.'
         }), 503
-    return send_from_directory(app.static_folder, 'index.html')
+    return send_from_directory(FRONTEND_DIST_DIR, 'index.html')
 
 @app.route('/<path:path>', methods=['GET'])
 def serve_static(path):
@@ -256,9 +263,9 @@ def serve_static(path):
 
     file_path = FRONTEND_DIST_DIR / path
     if file_path.is_file():
-        return send_from_directory(app.static_folder, path)
+        return send_from_directory(FRONTEND_DIST_DIR, path)
     else:
-        return send_from_directory(app.static_folder, 'index.html')
+        return send_from_directory(FRONTEND_DIST_DIR, 'index.html')
 
 if __name__ == '__main__':
     # For development: use debug mode
